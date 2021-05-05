@@ -10,7 +10,7 @@ class Node:
         return other.position == self.position
 
 
-def astar(grid, start, end ,cost):
+def astar(grid, start, end ):
         start_node = Node(None, start)
         start_node.g = start_node.h = start_node.f = 0
         end_node = Node(None, end)
@@ -31,6 +31,7 @@ def astar(grid, start, end ,cost):
 
             open_list.pop(current_index)
             close_list.append(current_node)
+
             if current_node == end_node:
                 path = []
                 current = current_node
@@ -38,6 +39,49 @@ def astar(grid, start, end ,cost):
                     path.append(current.position)
                     current = current.parent
                     return path[::-1]
+            children = []
+            #all_position = get_all_index(grid)
+            (row,col) = current_node.position
+            neighbors = [(row-1,col), (row+1,col), (row,col-1), (row,col+1), (row+1,col+1), (row-1,col-1), (row-1,col+1), (row+1,col-1)]
+            #get the next position if position out of board dont give add it to the next possible node
+            for new_position in neighbors:
+                if (((new_position[0] or new_position[1]) < 0) or ((new_position[0] or new_position[1]) > len(grid[0]))):
+
+                    continue
+                else:
+                 node_position  = (current_node.position[0] + new_position[0], current_node.position[1] + new_position[1])
+                 new_node=Node(current_node , node_position)
+                 children.append(new_node)
+            for child in children:
+                for close_child in close_list:
+                    if child == close_child:
+                        continue
+
+                if grid[child.position[0]][child.position[1]] == 'R':
+                    child.g = 1
+                    child.h = (abs(child.position[0] - end_node.position[0])) + (abs(child.position[1] - end_node.position[1]))
+                    child.f = child.g + child.h
+                    print (child.position)
+                    print (child.h)
+                    print (child.f)
+                elif grid[child.position[0]][child.position[1]] == 'D':
+                    child.g = 4
+                    child.h = (abs(child.position[0] - end_node.position[0]) ) + (abs(child.position[1] - end_node.position[1]))
+                    child.f = child.g + child.h
+                    print (child.position)
+                    print (child.h)
+                    print (child.f)
+                for open_node in open_list:
+                    if child == open_node and child.g > open_node.g:
+                        continue
+                open_list.append(child)
+
+
+
+
+                #print( grid[child.position[0]][child.position[1]])
+
+
 
 
 
@@ -48,6 +92,14 @@ def check_grid(grid, board_size):
     if(numOfBolck != (board_size * board_size)):
         print("there are missing info to solve the problem please fix and try again ")
     return
+def get_all_index(grid):
+    all_position=[]
+    for i in range(len(grid)):
+        for j in range(len(grid[i])):
+            all_position.append((i,j))
+    return (all_position)
+
+
 def foundStart(grid , board_size):
 
     #new and algant way
@@ -103,13 +155,13 @@ def main():
         grid.append(list(line))
     print(grid)
     movement =['U','D','R','L']
-    cost={'road': 1 , 'dirt_road' : 4}
+
     check_grid(grid ,borad_size)
     start = foundStart(grid,borad_size)
     end = foundEnd(grid ,borad_size)
     print("the start position : %s "  %(start,) )
     print("the end position : %s "  %(end,) )
-    astar(grid, start, end, cost)
+    astar(grid, start, end)
     #runRobot(start,grid,cost,movement)
 
 if __name__ == '__main__':
