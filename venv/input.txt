@@ -1,4 +1,4 @@
-A*
+greedy best first
 3
 ADB
 RWR

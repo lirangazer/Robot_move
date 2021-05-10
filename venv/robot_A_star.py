@@ -1,5 +1,4 @@
 import os
-from queue import PriorityQueue
 class Node:
     def __init__(self, parent = None, position = None):
         self.position = position
@@ -9,9 +8,79 @@ class Node:
         self.f = 0
     # def __eq__(self, other):
     #     return other.position == self.position
-def GFS(grid ,start, end):
-    start_node = Node(None, start, end)
+def GBF(grid ,start, end):
+    start_node = Node(None, start)
     start_node.h=start_node.f=0
+    end_node = Node(None, end)
+    end_node.h = end_node.f = 0
+    open_list = []
+    close_list = []
+    open_list.append(start_node)
+    while len(open_list) > 0:
+        current_node = open_list[0]
+        current_index = 0
+        for index, item in enumerate(open_list):
+            if item.f < current_node.f:
+                current_node = item
+                current_index = index
+
+        open_list.pop(current_index)
+        close_list.append(current_node)
+
+        if current_node.position == end_node.position:
+            path = []
+            cost = []
+            current = current_node
+            while current is not None:
+                char_location = get_char_path(current)
+                path.append(char_location)
+                cost.append(current.f)
+                current = current.parent
+            return path[::-1], cost
+        children = []
+        # all_position = get_all_index(grid)
+        (row, col) = current_node.position
+        neighbors = [(row - 1, col), (row + 1, col), (row, col - 1), (row, col + 1)]
+        # get the next position if position out of board dont give add it to the next possible node
+        for new_position in neighbors:
+            counter = 0
+            for i in close_list:
+                if new_position == i.position:
+                    counter += 1
+            if counter > 0:
+                continue
+            if (((new_position[0]) or (new_position[1])) < 0):
+                continue
+            elif ((new_position[0] > len(grid[0]) - 1) or (new_position[1] > len(grid[0]) - 1)):
+                continue
+            elif new_position[1] < 0:
+                continue
+            elif grid[new_position[0]][new_position[1]] == 'W':
+                continue
+
+            else:
+                node_position = (new_position[0], new_position[1])
+                # node_position  = (current_node.position[0] + new_position[0], current_node.position[1] + new_position[1])
+                new_node = Node(current_node, node_position)
+                # print(new_node.position)
+                children.append(new_node)
+        for child in children:
+            for close_child in close_list:
+                if child == close_child:
+                    continue
+
+            if grid[child.position[0]][child.position[1]] == 'R':
+                child.h = (abs(child.position[0] - end_node.position[0])) + (abs(child.position[1] - end_node.position[1]))
+                child.f = child.h
+                # print (child.position)
+                # print (child.h)
+                print (child.f)
+            elif grid[child.position[0]][child.position[1]] == 'D':
+                child.h = (abs(child.position[0] - end_node.position[0])) + (abs(child.position[1] - end_node.position[1]))
+                child.f = child.h
+                print(child.f)
+
+            open_list.append(child)
 
 
 
@@ -61,6 +130,7 @@ def astar(grid, start, end ):
                     cost.append(current.g)
                     current = current.parent
                 return path[::-1] ,cost
+
             children = []
             #all_position = get_all_index(grid)
             (row,col) = current_node.position
@@ -185,9 +255,15 @@ def main():
     check_grid(grid ,borad_size)
     start = foundStart(grid,borad_size)
     end = foundEnd(grid ,borad_size)
+    print(grid)
     print("the start position : %s "  %(start,) )
     print("the end position : %s "  %(end,) )
-    path = astar(grid, start, end)
+    if algorithem_type == 'A*':
+        path = astar(grid, start, end)
+    elif algorithem_type == 'greedy best first':
+        path = GBF(grid, start ,end)
+    else:
+        print("none")
     real_path = path[0]
     real_cost = path [1]
     print_cost = calc_cost(real_cost)
