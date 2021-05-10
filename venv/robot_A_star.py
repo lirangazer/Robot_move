@@ -11,7 +11,23 @@ class Node:
     #     return other.position == self.position
 def GFS(grid ,start, end):
     start_node = Node(None, start, end)
-    start_node.h=0
+    start_node.h=start_node.f=0
+
+
+
+def get_char_path(current_node):
+    (row, col) = current_node.position
+    if current_node.parent == None:
+       return '0'
+    elif current_node.parent.position == (row-1,col):
+        return 'D'
+    elif current_node.parent.position == (row+1,col):
+        return 'U'
+    elif current_node.parent.position == (row,col-1):
+        return 'R'
+    elif current_node.parent.position == (row,col+1):
+        return 'L'
+
 
 def astar(grid, start, end ):
         start_node = Node(None, start)
@@ -37,12 +53,14 @@ def astar(grid, start, end ):
 
             if current_node.position == end_node.position:
                 path = []
+                cost = []
                 current = current_node
                 while current is not None:
-                    path.append(current.position)
-                    path.append(current.g)
+                    char_location = get_char_path(current)
+                    path.append(char_location)
+                    cost.append(current.g)
                     current = current.parent
-                return path[::-1]
+                return path[::-1] ,cost
             children = []
             #all_position = get_all_index(grid)
             (row,col) = current_node.position
@@ -68,7 +86,7 @@ def astar(grid, start, end ):
                  node_position  = (new_position[0], new_position[1])
                  #node_position  = (current_node.position[0] + new_position[0], current_node.position[1] + new_position[1])
                  new_node=Node(current_node , node_position)
-                 print(new_node.position)
+                 #print(new_node.position)
                  children.append(new_node)
             for child in children:
                 for close_child in close_list:
@@ -79,16 +97,16 @@ def astar(grid, start, end ):
                     child.g = 1
                     child.h = (abs(child.position[0] - end_node.position[0])) + (abs(child.position[1] - end_node.position[1]))
                     child.f = child.g + child.h
-                    print (child.position)
-                    print (child.h)
-                    print (child.f)
+                    # print (child.position)
+                    # print (child.h)
+                    # print (child.f)
                 elif grid[child.position[0]][child.position[1]] == 'D':
                     child.g = 4
                     child.h = (abs(child.position[0] - end_node.position[0]) ) + (abs(child.position[1] - end_node.position[1]))
                     child.f = child.g + child.h
-                    print (child.position)
-                    print (child.h)
-                    print (child.f)
+                    # print (child.position)
+                    # print (child.h)
+                    # print (child.f)
                 for open_node in open_list:
                     if child == open_node and child.g > open_node.g:
                         continue
@@ -147,10 +165,15 @@ def foundEnd(grid ,borad_size):
     if countFailure == board_size:
         print("there is no start position please check the input file")
     return
+def calc_cost(real_cost):
+    cost = 0
+    for x in real_cost:
+        cost = x + cost
+    return cost
 
 def main():
-    filename = "C:\Liran_Collage\College\Fourth year\second simester\ML course\HM1\/files\input.txt"
-    with open(filename,'r') as input_file:
+    # filename = "C:\Liran_Collage\College\Fourth year\second simester\ML course\HM1\/files\input.txt"
+    with open('input.txt','r') as input_file:
         lines = input_file.read().splitlines()
         algorithem_type=lines[0]
         borad_size = int(lines[1])
@@ -159,16 +182,25 @@ def main():
         count = 0
         for line in lines[2:]:
          grid.append(list(line))
-    print(grid)
-    movement =['U','D','R','L']
     check_grid(grid ,borad_size)
     start = foundStart(grid,borad_size)
     end = foundEnd(grid ,borad_size)
     print("the start position : %s "  %(start,) )
     print("the end position : %s "  %(end,) )
     path = astar(grid, start, end)
-    print(path)
-    #runRobot(start,grid,cost,movement)
+    real_path = path[0]
+    real_cost = path [1]
+    print_cost = calc_cost(real_cost)
+    print(real_path)
+    print(print_cost)
+    outF = open("output.txt",'w')
+    for i in real_path:
+       if i == '0':continue
+       else:
+        outF.write(i + '-')
+    outF.write(str(print_cost))
+    outF.close()
+
 
 if __name__ == '__main__':
     main()
